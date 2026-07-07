@@ -2,17 +2,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Platform} from 'react-native';
 
-/**
- * Base URL configuration for local server.
- *
- * Android Emulator: 10.0.2.2 is the special alias to the host machine's loopback.
- * iOS Simulator:    localhost works directly since it shares the host's network.
- * Physical Device:  Replace with your machine's local IP (e.g., 192.168.x.x).
- */
+
 const BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:5000',
-  ios: 'http://localhost:5000',
-  default: 'http://localhost:5000',
+  android: 'http://172.16.58.187:5000/api', 
+  ios: 'http://172.16.58.187:5000/api',
+  default: 'http://172.16.58.187:5000/api',
 });
 
 const apiClient = axios.create({
@@ -23,7 +17,6 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor: attach JWT token to all requests
 apiClient.interceptors.request.use(
   async config => {
     try {
