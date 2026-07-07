@@ -14,7 +14,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Colors} from '../theme/colors';
-import {paymentAPI} from '../api/apiClient';
+import {paymentAPI, normalizePayment} from '../api/apiClient';
 import {useAuth} from '../context/AuthContext';
 import {Payment, MainStackParamList} from '../types';
 
@@ -100,7 +100,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({navigation}) => {
     try {
       const result = await paymentAPI.getAll();
       // Handle both direct array response and wrapped {data: [...]} response
-      const paymentData = Array.isArray(result) ? result : (result.data || result.payments || []);
+      const rawPayments = Array.isArray(result) ? result : (result.data || result.payments || []);
+      // Normalize paymentType casing and field names from server format to frontend format
+      const paymentData = rawPayments.map((p: any) => normalizePayment(p));
       setPayments(paymentData);
     } catch (error: any) {
       if (error.response?.status === 401) {

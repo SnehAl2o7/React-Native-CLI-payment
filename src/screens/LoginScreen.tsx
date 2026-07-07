@@ -44,7 +44,7 @@ const LoginScreen: React.FC = () => {
 
     try {
       const response = await authAPI.login(email.trim(), password);
-      await login(response.token);
+      await login(response.token, response.user);
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||

@@ -1,12 +1,23 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Platform} from 'react-native';
 
-// ⚠️ UPDATE THIS URL with your actual Vercel backend URL
-const BASE_URL = 'https://your-backend.vercel.app';
+/**
+ * Base URL configuration for local server.
+ *
+ * Android Emulator: 10.0.2.2 is the special alias to the host machine's loopback.
+ * iOS Simulator:    localhost works directly since it shares the host's network.
+ * Physical Device:  Replace with your machine's local IP (e.g., 192.168.x.x).
+ */
+const BASE_URL = Platform.select({
+  android: 'http://10.0.2.2:5000',
+  ios: 'http://localhost:5000',
+  default: 'http://localhost:5000',
+});
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -43,6 +54,82 @@ apiClient.interceptors.response.use(
   },
 );
 
+/**
+ * Payment type case mapping utilities.
+ *
+ * The frontend uses lowercase types ('bank', 'upi', 'paypal', 'paytm', 'usdt')
+ * while the server uses PascalCase ('Bank', 'UPI', 'PayPal', 'Paytm', 'USDT').
+ */
+const FRONTEND_TO_SERVER_TYPE: Record<string, string> = {
+  bank: 'Bank',
+  paytm: 'Paytm',
+  upi: 'UPI',
+  paypal: 'PayPal',
+  usdt: 'USDT',
+};
+
+const SERVER_TO_FRONTEND_TYPE: Record<string, string> = {
+  Bank: 'bank',
+  Paytm: 'paytm',
+  UPI: 'upi',
+  PayPal: 'paypal',
+  USDT: 'usdt',
+};
+
+/**
+ * Convert a frontend lowercase paymentType to server PascalCase.
+ */
+export const toServerPaymentType = (type: string): string =>
+  FRONTEND_TO_SERVER_TYPE[type] || type;
+
+/**
+ * Convert a server PascalCase paymentType to frontend lowercase.
+ */
+export const toFrontendPaymentType = (type: string): string =>
+  SERVER_TO_FRONTEND_TYPE[type] || type.toLowerCase();
+
+/**
+ * Map USDT field names between frontend and server.
+ * Frontend uses 'usdtWalletAddress', server uses 'usdtAddress'.
+ */
+export const mapFieldsToServer = (data: Record<string, string>): Record<string, string> => {
+  const mapped = {...data};
+
+  // Map paymentType to server casing
+  if (mapped.paymentType) {
+    mapped.paymentType = toServerPaymentType(mapped.paymentType);
+  }
+
+  // Map usdtWalletAddress → usdtAddress for USDT payments
+  if (mapped.usdtWalletAddress) {
+    mapped.usdtAddress = mapped.usdtWalletAddress;
+    delete mapped.usdtWalletAddress;
+  }
+
+  return mapped;
+};
+
+/**
+ * Normalize a single payment object returned from the server
+ * to match frontend expectations (lowercase types, usdtWalletAddress).
+ */
+export const normalizePayment = (payment: any): any => {
+  if (!payment) {return payment;}
+  const normalized = {...payment};
+
+  // Normalize paymentType to lowercase
+  if (normalized.paymentType) {
+    normalized.paymentType = toFrontendPaymentType(normalized.paymentType);
+  }
+
+  // Map usdtAddress → usdtWalletAddress for frontend consumption
+  if (normalized.usdtAddress && !normalized.usdtWalletAddress) {
+    normalized.usdtWalletAddress = normalized.usdtAddress;
+  }
+
+  return normalized;
+};
+
 // Auth API
 export const authAPI = {
   register: async (username: string, email: string, password: string) => {
@@ -56,25 +143,30 @@ export const authAPI = {
   },
 };
 
-// Payment API
+// Payment API — routes use /api/payments (plural, matching server)
 export const paymentAPI = {
   getAll: async () => {
-    const response = await apiClient.get('/api/payment');
+    const response = await apiClient.get('/api/payments');
     return response.data;
   },
 
   create: async (data: Record<string, string>) => {
-    const response = await apiClient.post('/api/payment', data);
+    const response = await apiClient.post('/api/payments', mapFieldsToServer(data));
     return response.data;
   },
 
   update: async (id: string, data: Record<string, string>) => {
-    const response = await apiClient.put(`/api/payment/${id}`, data);
+    const response = await apiClient.put(`/api/payments/${id}`, mapFieldsToServer(data));
     return response.data;
   },
 
   delete: async (id: string) => {
-    const response = await apiClient.delete(`/api/payment/${id}`);
+    const response = await apiClient.delete(`/api/payments/${id}`);
+    return response.data;
+  },
+
+  setPrimary: async (id: string) => {
+    const response = await apiClient.patch(`/api/payments/${id}/primary`);
     return response.data;
   },
 };

@@ -21,6 +21,8 @@ export interface Payment {
   paypalEmail?: string;
   // USDT fields
   usdtWalletAddress?: string;
+  usdtAddress?: string; // Server returns this name; mapped to usdtWalletAddress by apiClient
+  network?: string; // TRC20 or ERC20
   // Timestamps
   createdAt?: string;
   updatedAt?: string;

@@ -55,9 +55,8 @@ const RegisterScreen: React.FC = () => {
     setError(null);
 
     try {
-      await authAPI.register(username.trim(), email.trim(), password);
-      const loginResponse = await authAPI.login(email.trim(), password);
-      await login(loginResponse.token);
+      const response = await authAPI.register(username.trim(), email.trim(), password);
+      await login(response.token, response.user);
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
