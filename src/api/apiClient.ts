@@ -4,9 +4,9 @@ import {Platform} from 'react-native';
 
 
 const BASE_URL = Platform.select({
-  android: 'http://172.16.58.187:5000/api', 
-  ios: 'http://172.16.58.187:5000/api',
-  default: 'http://172.16.58.187:5000/api',
+  android: 'http://10.118.212.187:5000', 
+  ios: 'http://10.118.212.187:5000',
+  default: 'http://10.118.212.187:5000',
 });
 
 const apiClient = axios.create({

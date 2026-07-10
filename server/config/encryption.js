@@ -1,3 +1,4 @@
+/* eslint-env node */
 /**
  * ============================================================================
  * Field-Level Encryption Utilities — server/config/encryption.js

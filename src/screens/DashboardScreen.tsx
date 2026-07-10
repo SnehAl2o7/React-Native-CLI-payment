@@ -142,7 +142,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({navigation}) => {
               try {
                 await paymentAPI.delete(payment._id);
                 setPayments(prev => prev.filter(p => p._id !== payment._id));
-              } catch (error: any) {
+              } catch {
                 Alert.alert(
                   'Error',
                   'Failed to delete payment method. Please try again.',
