@@ -4,9 +4,9 @@ import {Platform} from 'react-native';
 
 
 const BASE_URL = Platform.select({
-  android: 'http://10.118.212.187:5000', 
-  ios: 'http://10.118.212.187:5000',
-  default: 'http://10.118.212.187:5000',
+  android: 'https://multiple-payment-info-system.vercel.app/', 
+  ios: 'https://multiple-payment-info-system.vercel.app/',
+  default: 'https://multiple-payment-info-system.vercel.app/',
 });
 
 const apiClient = axios.create({
